@@ -50,15 +50,6 @@ abstract class AppendTask : DefaultTask() {
         logger.quiet(">>> BCU append output ---> $outputDir")
         logger.quiet(">>> BCU append isIncremental ---> ${inputChanges.isIncremental}")
         val startTime = System.currentTimeMillis()
-        // delete: "build/intermediates/project_dex_archive" can fix generate dex increment error
-        val projectDexArchive = File(File(project.buildDir, "intermediates"), "project_dex_archive")
-        if (!inputChanges.isIncremental) {
-            projectDexArchive.deleteRecursively()
-            outputDir
-                .walkBottomUp()
-                .filterNot { it.name.endsWith(".jar") }
-                .forEach { it.delete() }
-        }
         val removedCount = Ref.IntRef()
         val removedGroup = ArrayList<ArrayList<File>>(50)
         val modifiedCount = Ref.IntRef()
@@ -95,9 +86,6 @@ abstract class AppendTask : DefaultTask() {
                 it.inputDir.set(inputDir)
                 it.outputDir.set(outputDir)
             }
-        }
-        if (removedGroup.isNotEmpty() || modifiedGroup.isNotEmpty()) {
-            projectDexArchive.deleteRecursively()
         }
         // 等移除和修改执行完才能添加，否则可能产生文件冲突
         workQueue.await()
